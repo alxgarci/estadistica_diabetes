@@ -114,10 +114,10 @@ def main():
     plot.figure()
     sb.heatmap(stroke.corr(), annot=True)
     plot.title("Matriz de coeficiente de correlación entre variables")
-    plot.figure()
     # In[14]:
 
     # Diagrama de correlacion por pares, para entender la anterior matriz de correlacion
+    plot.figure()
     sb.pairplot(stroke)
 
     # In[15]:
@@ -125,8 +125,8 @@ def main():
     # Encontramos que age y ever_married tienen una alta correlacion, imprimimos su correlacion en grafica
     # sb.scatterplot(stroke, x="age", y="avg_glucose_level")
 
-    plot.scatter(x=stroke["bmi"], y=stroke["avg_glucose_level"])
     plot.figure()
+    plot.scatter(x=stroke["bmi"], y=stroke["avg_glucose_level"])
 
     # In[18]:
 
@@ -136,6 +136,7 @@ def main():
         return slope * x + intercept
 
     mymodel = list(map(myfunc, stroke["bmi"]))
+    plot.figure()
     plot.scatter(stroke["bmi"], stroke["avg_glucose_level"])
     plot.plot(stroke["bmi"], mymodel, "r")
     plot.show()
