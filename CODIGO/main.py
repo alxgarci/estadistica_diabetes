@@ -15,7 +15,7 @@ matplotlib.use("TkAgg")
 
 def main():
     # Importamos nuestros datos desde el csv
-    stroke_original = pd.read_csv("stroke.csv")
+    stroke_original = pd.read_csv("stroke.csv", na_values=[np.nan])
     stroke_original.drop("id", axis="columns", inplace=True)
     stroke_original.gender = [1 if each == "Male" else 0 for each in stroke_original.gender]
     stroke_original.ever_married = [1 if each == "Yes" else 0 for each in stroke_original.ever_married]
@@ -24,7 +24,7 @@ def main():
     stroke_original.smoking_status = [1 if each == "formerly smoked" else 0 for each in stroke_original.smoking_status]
     # Quitamos la columna "Outcome" ya que no nos servirá para nuestro estudio estadístico
     # stroke = stroke_original.drop("stroke", axis="columns")
-    stroke = stroke_original.dropna(axis=1)
+    stroke = stroke_original.dropna(axis="rows")
     print(stroke.to_string())
 
     # In[9]:
@@ -87,7 +87,7 @@ def main():
     count_an.set(xlabel="gender", ylabel="Personas")
     plot.show()
 
-    for x in stroke.columns.drop(["age", "avg_glucose_level", "gender"]):
+    for x in stroke.columns.drop(["age", "avg_glucose_level", "gender", "bmi"]):
         plot.figure()
         count_an = sb.countplot(x=x, data=stroke)
         count_an.set_xticklabels(labels=["No", "Yes"])
@@ -125,28 +125,20 @@ def main():
     # Encontramos que age y ever_married tienen una alta correlacion, imprimimos su correlacion en grafica
     # sb.scatterplot(stroke, x="age", y="avg_glucose_level")
 
-    plot.scatter(x=stroke["age"], y=stroke["avg_glucose_level"])
+    plot.scatter(x=stroke["bmi"], y=stroke["avg_glucose_level"])
     plot.figure()
 
     # In[18]:
 
-    slope, intercept, r, p, std_err = stats.linregress(stroke["age"], stroke["avg_glucose_level"])
+    slope, intercept, r, p, std_err = stats.linregress(stroke["bmi"], stroke["avg_glucose_level"])
 
     def myfunc(x):
         return slope * x + intercept
 
-    mymodel = list(map(myfunc, stroke["age"]))
-    plot.scatter(stroke["age"], stroke["avg_glucose_level"])
-    plot.plot(stroke["age"], mymodel, "r")
+    mymodel = list(map(myfunc, stroke["bmi"]))
+    plot.scatter(stroke["bmi"], stroke["avg_glucose_level"])
+    plot.plot(stroke["bmi"], mymodel, "r")
     plot.show()
-
-    # In[ ]:
-
-    # TODO:
-    # ✓Un análisis de regresión para las dos variables continuas, así como su gráfico de dispersión y el
-    # coeficiente de correlación.
-    # ✓Gráficos y tablas que pueden explicar las variables de una manera más completa (diagramas de
-    # caja según variable categórica, por ejemplo).
 
 
 if __name__ == '__main__':
