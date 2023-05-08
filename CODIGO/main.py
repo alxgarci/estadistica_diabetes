@@ -1,3 +1,4 @@
+import math
 import warnings
 
 import matplotlib
@@ -5,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plot
 import seaborn as sb
 import numpy as np
-from scipy.stats import stats
+from scipy import stats
 from sklearn import linear_model
 from sklearn.linear_model import LinearRegression
 
@@ -130,7 +131,7 @@ def main():
 
     # In[18]:
 
-    slope, intercept, r, p, std_err = stats.linregress(stroke["bmi"], stroke["avg_glucose_level"])
+    slope, intercept, r, p, std_err = stats.stats.linregress(stroke["bmi"], stroke["avg_glucose_level"])
 
     def myfunc(x):
         return slope * x + intercept
@@ -140,6 +141,84 @@ def main():
     plot.scatter(stroke["bmi"], stroke["avg_glucose_level"])
     plot.plot(stroke["bmi"], mymodel, "r")
     plot.show()
+
+    # Intervalos de confianza para variables
+    # Medias
+    media_bmi = stroke["bmi"].mean()
+    media_glucose = stroke["avg_glucose_level"].mean()
+
+    # Desviacion estandar
+    std_bmi = stroke["bmi"].std()
+    std_glucose = stroke["avg_glucose_level"].std()
+
+    # Error estandar
+    err_estandar_bmi = std_bmi / math.sqrt(len(stroke["bmi"]))
+    err_estandar_glucose = std_bmi / math.sqrt(len(stroke["avg_glucose_level"]))
+
+    # Encontramos nuestro t* value
+    t_bmi = stats.t.ppf(0.95, df=len(stroke["bmi"]) - 1)
+    t_glucose = stats.t.ppf(0.95, df=len(stroke["avg_glucose_level"]) - 1)
+
+    # Sacamos los intervalos de confianza
+    ic_bmi_suma = media_bmi + t_bmi * err_estandar_bmi
+    ic_bmi_resta = media_bmi - t_bmi * err_estandar_bmi
+
+    ic_glucose_suma = media_glucose + t_glucose * err_estandar_glucose
+    ic_glucose_resta = media_glucose + t_glucose * err_estandar_glucose
+
+    df_res = pd.DataFrame()
+    df_res["bmi"] = [media_bmi, std_bmi, err_estandar_bmi, t_bmi, ic_bmi_suma, ic_bmi_resta]
+    df_res["avg_glucose_level"] = [media_glucose, std_glucose, err_estandar_glucose, t_glucose, ic_glucose_suma,
+                                   ic_glucose_resta]
+    df_res = df_res.set_index(pd.Index(["Media", "Desviacion Estandar", "Error estandar", "t",
+                                        "Intervalo de confianza (sumado)", "Intervalo de confianza (restado)"]))
+    print(df_res.to_string())
+
+    # Contrastes de hipótesis de cada una de las dos variables
+
+    # # # BMI
+    # Pondremos como hipotesis nula que la media es superior a 40 (H0)
+    # y como hipotesis alternativa que es diferente a 40
+    # Establecemos el nivel de significancia por ejemplo a 0.05
+
+    alfa = 0.05
+    H0 = 40
+    st_hipotesis = f"Que la media sea igual a {H0}"
+    st_alt_hipotesis = f"Que la media sea diferente a {H0}"
+
+    # Calculamos t-value y p-value
+    t_value_bmi, p_value_bmi = stats.ttest_1samp(stroke["bmi"], H0)
+
+    df_res = pd.DataFrame()
+
+    # Comparamos los resultados con el nivel de significancia (alfa)
+    if p_value_bmi < alfa:
+        st_cond = "Se rechaza la Hipotesis Nula (H0)"
+    else:
+        st_cond = "No se puede rechazar la Hipotesis Nula (H0)"
+    df_res["bmi"] = [alfa, t_value_bmi, p_value_bmi, st_hipotesis, st_alt_hipotesis, st_cond]
+
+    # # # avg_glucose_level
+    # Pondremos como hipotesis nula que la media es superior a 109 (H0)
+    # y como hipotesis alternativa que es diferente a 109
+    # Establecemos el nivel de significancia por ejemplo a 0.05
+    alfa = 0.05
+    H0 = 109
+    st_hipotesis = f"Que la media sea igual a {H0}"
+    st_alt_hipotesis = f"Que la media sea diferente a {H0}"
+
+    t_value_glucose, p_value_glucose = stats.ttest_1samp(stroke["avg_glucose_level"], H0)
+
+    # Comparamos los resultados con el nivel de significancia (alfa)
+    if p_value_glucose < alfa:
+        st_cond = "Se rechaza la Hipotesis Nula (H0)"
+    else:
+        st_cond = "No se puede rechazar la Hipotesis Nula (H0)"
+
+    df_res["avg_glucose_level"] = [alfa, t_value_glucose, p_value_glucose, st_hipotesis, st_alt_hipotesis, st_cond]
+    df_res = df_res.set_index(
+        pd.Index(["Nivel de significancia", "Valor 't'", "Valor 'p'", "Hipotesis H0", "Hipotesis Ha", "Resultado"]))
+    print(df_res.to_string())
 
 
 if __name__ == '__main__':
